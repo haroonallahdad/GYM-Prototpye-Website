@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth">
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans bg-[#080808] text-white min-h-screen antialiased selection:bg-[#CEFF00] selection:text-black`}
+        className={`${inter.variable} ${outfit.variable} font-sans bg-[#050505] text-white min-h-screen antialiased selection:bg-[#FF5E00] selection:text-black`}
       >
         {children}
       </body>

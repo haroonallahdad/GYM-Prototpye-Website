@@ -259,7 +259,7 @@ export default function Home() {
 
       <Navbar />
 
-      <main className="flex-grow pt-20 overflow-hidden">
+      <main className="flex-grow pt-20">
         {/* 🎬 HERO SECTION */}
         <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden px-6">
           {/* Background Video/Image Layer */}
