@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck,
   Zap,
@@ -52,6 +52,7 @@ export default function Home() {
   const [ctaEmail, setCtaEmail] = useState("");
   const [isCtaSubmitted, setIsCtaSubmitted] = useState(false);
   const [isNewsSubmitted, setIsNewsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleCtaSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,6 +187,66 @@ export default function Home() {
 
   return (
     <>
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <motion.div
+            key="preloader"
+            initial={{ opacity: 1 }}
+            exit={{
+              opacity: 0,
+              y: -80,
+              transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
+            }}
+            className="fixed inset-0 z-50 bg-[#080808] flex flex-col items-center justify-center pointer-events-auto"
+          >
+            <div className="space-y-6 flex flex-col items-center text-center">
+              {/* Brand Logo and Text */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="flex flex-col items-center space-y-4"
+              >
+                <div className="relative w-16 h-16">
+                  <Image
+                    src="/icon.png"
+                    alt="TITAN Logo"
+                    fill
+                    sizes="64px"
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <span className="font-display font-black text-4xl sm:text-5xl tracking-tighter text-white">
+                  TITAN<span className="text-brand-accent">.</span>
+                </span>
+              </motion.div>
+
+              {/* Progress Bar */}
+              <div className="w-48 h-[2px] bg-white/5 rounded-full overflow-hidden relative">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+                  onAnimationComplete={() => setIsLoading(false)}
+                  className="h-full bg-brand-accent shadow-[0_0_15px_rgba(206,255,0,0.6)]"
+                />
+              </div>
+
+              {/* Status text */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.5, 0.5, 0] }}
+                transition={{ duration: 1.8, times: [0, 0.2, 0.8, 1] }}
+                className="text-[10px] font-black uppercase tracking-widest text-brand-text-muted"
+              >
+                ENGINES ACTIVE • STANDBY
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Navbar />
 
       <main className="flex-grow pt-20">
