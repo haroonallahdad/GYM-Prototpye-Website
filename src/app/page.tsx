@@ -77,19 +77,23 @@ export default function Home() {
   const vortexOpacity = useTransform(smoothIntroProgress, [0.72, 0.82], [1, 0]);
   const heroRevealOpacity = useTransform(smoothIntroProgress, [0.72, 0.82], [0, 1]);
 
-  // Horizontal Scroll Transformation Section Refs
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress: horizontalScrollProgress } = useScroll({
-    target: scrollContainerRef,
-  });
+  // Phase controller for interactive biometric evolution deck (fixes scroll-linked wobbly lag)
+  const [currentPhase, setCurrentPhase] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Apply spring physics to horizontal scroll transitions for that premium Webflow/GSAP momentum feel
-  const smoothHorizontalProgress = useSpring(horizontalScrollProgress, {
-    stiffness: 65,
-    damping: 22,
-    restDelta: 0.0005,
-  });
-  const horizontalX = useTransform(smoothHorizontalProgress, [0, 1], ["0vw", "-200vw"]);
+  // Auto-play phase changes
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    const timer = setInterval(() => {
+      setCurrentPhase((prev) => (prev + 1) % 3);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying]);
+
+  const selectPhase = (idx: number) => {
+    setCurrentPhase(idx);
+    setIsAutoPlaying(false); // Stop autoplay once user interacts manually
+  };
 
   // Generate physics shards on client mount
   useEffect(() => {
@@ -239,6 +243,78 @@ export default function Home() {
       specialty: "Injury Prevention, Joint Articulation",
       bio: "Dr. Chen bridges the gap between intense strength training and long-term joint longevity, managing our recovery methodologies.",
     },
+  ];
+
+  const evolutionPhases = [
+    {
+      stageNum: "01",
+      tag: "CNS STRESS INDEX: HIGH",
+      tagColor: "text-brand-secondary border-brand-secondary/20 bg-brand-secondary-muted/40",
+      dotColor: "bg-brand-secondary",
+      title: "THE COLD",
+      accentTitle: "BASELINE",
+      accentColor: "text-brand-secondary",
+      desc: "Physical stagnation triggers chronic nervous strain. Biometric diagnostics signal lowered heart rate variability, elevated resting heart rates, and a high body fat profile. Excuses govern the routine.",
+      image: "/images/transform_stage_1.png",
+      scanLabel: "SYSTEM SCAN // PHASE 01 // BASELINE",
+      scanColor: "text-brand-secondary",
+      scanlineColor: "bg-brand-secondary/20 shadow-[0_0_8px_rgba(255,0,60,0.3)]",
+      reticleColor: "border-brand-secondary/40",
+      bodyFat: "34.2",
+      bodyFatPct: 85,
+      bodyFatColor: "bg-brand-secondary",
+      hrv: "22",
+      hrvPath: "M0 8 h15 l2 -4 l2 4 h15 l2 -2 l2 2 h15",
+      hrvColor: "stroke-brand-secondary/50",
+      cnsState: "Critical",
+      cnsBadge: "bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary",
+    },
+    {
+      stageNum: "02",
+      tag: "CNS STRESS INDEX: MODERATE",
+      tagColor: "text-brand-accent border-brand-accent/20 bg-brand-accent-muted/40",
+      dotColor: "bg-brand-accent",
+      title: "THE KINETIC",
+      accentTitle: "TRANSITION",
+      accentColor: "text-brand-accent",
+      desc: "Habit builds kinetic momentum. The nervous system begins adaptive recovery. Biometric audits reveal body fat drops to 22%, sleep architecture optimizes, and active HRV rises to 58ms.",
+      image: "/images/transform_stage_2.png",
+      scanLabel: "SYSTEM SCAN // PHASE 02 // MOMENTUM",
+      scanColor: "text-brand-accent",
+      scanlineColor: "bg-brand-accent/20 shadow-[0_0_8px_rgba(255,94,0,0.3)]",
+      reticleColor: "border-brand-accent/40",
+      bodyFat: "22.0",
+      bodyFatPct: 55,
+      bodyFatColor: "bg-brand-accent",
+      hrv: "58",
+      hrvPath: "M0 8 h8 l2 -6 l2 8 l2 -2 h8 l2 -6 l2 6 h15",
+      hrvColor: "stroke-brand-accent/50",
+      cnsState: "Balanced",
+      cnsBadge: "bg-brand-accent/10 border-brand-accent/20 text-brand-accent",
+    },
+    {
+      stageNum: "03",
+      tag: "CNS STRESS INDEX: OPTIMAL",
+      tagColor: "text-brand-secondary border-brand-secondary/20 bg-brand-accent-muted/40",
+      dotColor: "bg-brand-secondary",
+      title: "THE APEX",
+      accentTitle: "REALIZATION",
+      accentColor: "text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-secondary",
+      desc: "Complete biomechanical alignment. The physical shell matches athletic intent. Body fat reaches an optimized 10%, HRV tops at an elite 94ms, and cardiovascular output is fully unrestrained.",
+      image: "/images/transform_stage_3.png",
+      scanLabel: "SYSTEM SCAN // PHASE 03 // APEX",
+      scanColor: "text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-secondary",
+      scanlineColor: "bg-brand-secondary/20 shadow-[0_0_8px_rgba(255,0,60,0.3)]",
+      reticleColor: "border-brand-secondary/40",
+      bodyFat: "10.1",
+      bodyFatPct: 25,
+      bodyFatColor: "bg-gradient-to-r from-brand-accent to-brand-secondary",
+      hrv: "94",
+      hrvPath: "M0 8 h4 l2 -12 l2 16 l2 -4 h4 l2 -12 l2 16 l2 -4 h15",
+      hrvColor: "stroke-brand-secondary/60",
+      cnsState: "Optimal",
+      cnsBadge: "bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary",
+    }
   ];
 
   const containerVariants = {
@@ -784,283 +860,175 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* 📈 HORIZONTAL SCROLL STORYTELLER (THE EVOLUTION CENTERPIECE) */}
-        <section ref={scrollContainerRef} className="relative h-[300vh] bg-black">
-          {/* Sticky view wrapper with perspective and hardware compositing */}
-          <div className="sticky top-0 h-screen flex items-center overflow-hidden [perspective:1000px] [backface-visibility:hidden]">
-            {/* Horizontal translation container with spring inertia and explicit GPU layer promotion */}
-            <motion.div
-              style={{ x: horizontalX, z: 0 }}
-              className="flex w-[300vw] h-screen will-change-transform transform-gpu backface-hidden"
-            >
-              
-              {/* STAGE 1: THE COLD START */}
-              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#120400] px-6 md:px-16 overflow-hidden transform-gpu backface-hidden">
-                {/* Background Giant Track number */}
-                <div className="absolute -bottom-16 -left-16 font-display font-black text-[35vw] text-outline opacity-[0.025] select-none">
-                  01
-                </div>
+        {/* 📈 INTERACTIVE BIOMETRIC STORYTELLER (THE EVOLUTION CENTERPIECE) */}
+        <section id="evolution" className="py-28 md:py-36 bg-black relative overflow-hidden border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
+            
+            {/* Header info */}
+            <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand-accent">
+                Biometric Transformation
+              </span>
+              <h2 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight uppercase text-white">
+                THE ATHLETIC EVOLUTION
+              </h2>
+              <p className="font-sans text-brand-text-muted font-light text-base">
+                Select a performance phase below to scan and audit the physiological shifts from baseline stagnation to apex conditioning.
+              </p>
+            </div>
 
-                <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10">
-                  {/* Photo details */}
-                  <div className="lg:col-span-6 relative aspect-square md:aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 group">
-                    {/* Corner Reticle brackets */}
-                    <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-brand-secondary/40 z-20" />
-                    <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-brand-secondary/40 z-20" />
-                    <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-brand-secondary/40 z-20" />
-                    <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-brand-secondary/40 z-20" />
-                    
-                    {/* Infinite Scan-line sweep */}
+            {/* HIGH-TECH TAB CONTROLLER */}
+            <div className="flex justify-center items-center space-x-4 md:space-x-8 mb-16 border-b border-white/5 pb-6 w-full max-w-2xl relative select-none">
+              {["01 // BASELINE", "02 // MOMENTUM", "03 // APEX"].map((phaseName, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => selectPhase(idx)}
+                  className={`relative pb-3 text-[10px] md:text-xs font-mono tracking-widest uppercase transition-colors duration-300 ${
+                    currentPhase === idx ? "text-brand-accent font-black" : "text-white/40 hover:text-white/80"
+                  }`}
+                >
+                  {phaseName}
+                  
+                  {/* Glowing active line */}
+                  {currentPhase === idx && (
                     <motion.div
-                      initial={{ y: "-100%" }}
-                      animate={{ y: "100%" }}
-                      transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                      className="absolute inset-x-0 h-[1.5px] bg-brand-secondary/20 shadow-[0_0_8px_rgba(255,0,60,0.3)] z-10 pointer-events-none"
+                      layoutId="activePhaseLine"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-accent shadow-[0_0_8px_rgba(255,94,0,0.6)]"
                     />
+                  )}
 
-                    <Image
-                      src="/images/transform_stage_1.png"
-                      alt="Physical Baseline Stage"
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 600px"
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-104"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                    <div className="absolute bottom-5 left-5 bg-black/80 px-3 py-1.5 rounded border border-white/10 text-[9px] font-mono tracking-widest text-brand-secondary uppercase">
-                      SYSTEM SCAN // PHASE 01 // BASELINE
-                    </div>
-                  </div>
-
-                  {/* Narrative details */}
-                  <div className="lg:col-span-6 space-y-6 text-left">
-                    <div className="inline-flex items-center space-x-2 bg-brand-secondary-muted/40 px-3 py-1 rounded border border-brand-secondary/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse" />
-                      <span className="text-[9px] font-mono tracking-widest text-brand-secondary uppercase">
-                        CNS STRESS INDEX: HIGH
-                      </span>
-                    </div>
-
-                    <h2 className="font-display font-black text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-none">
-                      THE COLD <br />
-                      <span className="text-brand-secondary">BASELINE</span>
-                    </h2>
-                    <p className="font-sans text-sm md:text-base text-brand-text-muted font-light leading-relaxed">
-                      Physical stagnation triggers chronic nervous strain. Biometric diagnostics signal lowered heart rate variability, elevated resting heart rates, and a high body fat profile. Excuses govern the routine.
-                    </p>
-
-                    {/* HUD metrics dashboard */}
-                    <div className="grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">Body Fat</span>
-                        <div className="text-2xl font-display font-black text-white flex items-baseline">
-                          34.2<span className="text-xs font-sans text-brand-text-muted ml-0.5">%</span>
-                        </div>
-                        {/* Dynamic visual indicator */}
-                        <div className="h-1 bg-white/10 rounded-full overflow-hidden w-24">
-                          <div className="h-full bg-brand-secondary w-[85%]" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">HRV Avg</span>
-                        <div className="text-2xl font-display font-black text-white">
-                          22<span className="text-xs font-sans text-brand-text-muted ml-0.5">ms</span>
-                        </div>
-                        {/* Flatline Pulse graphic */}
-                        <svg className="w-20 h-4 stroke-brand-secondary/50 fill-none" strokeWidth="1.5">
-                          <path d="M0 8 h15 l2 -4 l2 4 h15 l2 -2 l2 2 h15" />
-                        </svg>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">CNS State</span>
-                        <span className="inline-flex items-center px-2 py-0.5 bg-brand-secondary/10 border border-brand-secondary/20 rounded text-[9px] font-bold text-brand-secondary uppercase tracking-widest animate-pulse mt-1">
-                          Critical
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* STAGE 2: THE MOMENTUM */}
-              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#1c0c00] px-6 md:px-16 overflow-hidden transform-gpu backface-hidden">
-                <div className="absolute -bottom-16 -left-16 font-display font-black text-[35vw] text-outline opacity-[0.025] select-none">
-                  02
-                </div>
-
-                <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10">
-                  {/* Photo details */}
-                  <div className="lg:col-span-6 relative aspect-square md:aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 group">
-                    {/* Corner Reticle brackets */}
-                    <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-brand-accent/40 z-20" />
-                    <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-brand-accent/40 z-20" />
-                    <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-brand-accent/40 z-20" />
-                    <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-brand-accent/40 z-20" />
-                    
-                    {/* Infinite Scan-line sweep */}
+                  {/* Autoplay loading progress indicator */}
+                  {currentPhase === idx && isAutoPlaying && (
                     <motion.div
-                      initial={{ y: "-100%" }}
-                      animate={{ y: "100%" }}
-                      transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                      className="absolute inset-x-0 h-[1.5px] bg-brand-accent/20 shadow-[0_0_8px_rgba(255,94,0,0.3)] z-10 pointer-events-none"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 7, ease: "linear" }}
+                      className="absolute -bottom-[2px] left-0 h-[2px] bg-white z-20"
                     />
+                  )}
+                </button>
+              ))}
+            </div>
 
-                    <Image
-                      src="/images/transform_stage_2.png"
-                      alt="Physical Momentum Stage"
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 600px"
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-104"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                    <div className="absolute bottom-5 left-5 bg-black/80 px-3 py-1.5 rounded border border-white/10 text-[9px] font-mono tracking-widest text-brand-accent uppercase">
-                      SYSTEM SCAN // PHASE 02 // MOMENTUM
-                    </div>
-                  </div>
-
-                  {/* Narrative details */}
-                  <div className="lg:col-span-6 space-y-6 text-left">
-                    <div className="inline-flex items-center space-x-2 bg-brand-accent-muted/40 px-3 py-1 rounded border border-brand-accent/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
-                      <span className="text-[9px] font-mono tracking-widest text-brand-accent uppercase">
-                        CNS STRESS INDEX: MODERATE
-                      </span>
-                    </div>
-
-                    <h2 className="font-display font-black text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-none">
-                      THE KINETIC <br />
-                      <span className="text-brand-accent">TRANSITION</span>
-                    </h2>
-                    <p className="font-sans text-sm md:text-base text-brand-text-muted font-light leading-relaxed">
-                      Habit builds kinetic momentum. The nervous system begins adaptive recovery. Biometric audits reveal body fat drops to 22%, sleep architecture optimizes, and active HRV rises to 58ms.
-                    </p>
-
-                    {/* HUD metrics dashboard */}
-                    <div className="grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">Body Fat</span>
-                        <div className="text-2xl font-display font-black text-white flex items-baseline">
-                          22.0<span className="text-xs font-sans text-brand-text-muted ml-0.5">%</span>
-                        </div>
-                        {/* Dynamic visual indicator */}
-                        <div className="h-1 bg-white/10 rounded-full overflow-hidden w-24">
-                          <div className="h-full bg-brand-accent w-[55%]" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">HRV Avg</span>
-                        <div className="text-2xl font-display font-black text-white">
-                          58<span className="text-xs font-sans text-brand-text-muted ml-0.5">ms</span>
-                        </div>
-                        {/* Normal active pulse SVG */}
-                        <svg className="w-20 h-4 stroke-brand-accent/50 fill-none" strokeWidth="1.5">
-                          <path d="M0 8 h8 l2 -6 l2 8 l2 -2 h8 l2 -6 l2 6 h15" />
-                        </svg>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">CNS State</span>
-                        <span className="inline-flex items-center px-2 py-0.5 bg-brand-accent/10 border border-brand-accent/20 rounded text-[9px] font-bold text-brand-accent uppercase tracking-widest animate-pulse mt-1">
-                          Balanced
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* STAGE 3: THE APEX */}
-              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#260500] px-6 md:px-16 overflow-hidden transform-gpu backface-hidden">
-                <div className="absolute -bottom-16 -left-16 font-display font-black text-[35vw] text-outline opacity-[0.025] select-none">
-                  03
-                </div>
-
-                <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10">
-                  {/* Photo details */}
-                  <div className="lg:col-span-6 relative aspect-square md:aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 group">
-                    {/* Corner Reticle brackets */}
-                    <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-brand-secondary/40 z-20" />
-                    <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-brand-secondary/40 z-20" />
-                    <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-brand-secondary/40 z-20" />
-                    <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-brand-secondary/40 z-20" />
-                    
-                    {/* Infinite Scan-line sweep */}
+            {/* DECK PANEL CONTAINER */}
+            <div className="w-full min-h-[580px] md:min-h-[420px] flex items-center justify-center relative">
+              <AnimatePresence mode="wait">
+                {evolutionPhases.map((phase, idx) => {
+                  if (currentPhase !== idx) return null;
+                  return (
                     <motion.div
-                      initial={{ y: "-100%" }}
-                      animate={{ y: "100%" }}
-                      transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                      className="absolute inset-x-0 h-[1.5px] bg-brand-secondary/20 shadow-[0_0_8px_rgba(255,0,60,0.3)] z-10 pointer-events-none"
-                    />
+                      key={idx}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                      className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10"
+                    >
+                      {/* Left Column: Image with Corner Reticles and Laser Sweeper */}
+                      <div className="lg:col-span-6 relative aspect-square md:aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 group transform-gpu">
+                        {/* Corner Reticle brackets */}
+                        <div className={`absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 ${phase.reticleColor} z-20`} />
+                        <div className={`absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 ${phase.reticleColor} z-20`} />
+                        <div className={`absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 ${phase.reticleColor} z-20`} />
+                        <div className={`absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 ${phase.reticleColor} z-20`} />
+                        
+                        {/* Infinite Scan-line sweep */}
+                        <motion.div
+                          initial={{ y: "-100%" }}
+                          animate={{ y: "100%" }}
+                          transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                          className={`absolute inset-x-0 h-[1.5px] z-10 pointer-events-none transform-gpu ${phase.scanlineColor}`}
+                        />
 
-                    <Image
-                      src="/images/transform_stage_3.png"
-                      alt="Physical Peak Stage"
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 600px"
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-104"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                    <div className="absolute bottom-5 left-5 bg-black/80 px-3 py-1.5 rounded border border-white/10 text-[9px] font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-secondary uppercase">
-                      SYSTEM SCAN // PHASE 03 // APEX
-                    </div>
-                  </div>
-
-                  {/* Narrative details */}
-                  <div className="lg:col-span-6 space-y-6 text-left">
-                    <div className="inline-flex items-center space-x-2 bg-brand-accent-muted/40 px-3 py-1 rounded border border-brand-accent/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse" />
-                      <span className="text-[9px] font-mono tracking-widest text-brand-secondary uppercase">
-                        CNS STRESS INDEX: OPTIMAL
-                      </span>
-                    </div>
-
-                    <h2 className="font-display font-black text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-none">
-                      THE APEX <br />
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-secondary">REALIZATION</span>
-                    </h2>
-                    <p className="font-sans text-sm md:text-base text-brand-text-muted font-light leading-relaxed">
-                      Complete biomechanical alignment. The physical shell matches athletic intent. Body fat reaches an optimized 10%, HRV tops at an elite 94ms, and cardiovascular output is fully unrestrained.
-                    </p>
-
-                    {/* HUD metrics dashboard */}
-                    <div className="grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">Body Fat</span>
-                        <div className="text-2xl font-display font-black text-white flex items-baseline">
-                          10.1<span className="text-xs font-sans text-brand-text-muted ml-0.5">%</span>
-                        </div>
-                        {/* Dynamic visual indicator */}
-                        <div className="h-1 bg-white/10 rounded-full overflow-hidden w-24">
-                          <div className="h-full bg-gradient-to-r from-brand-accent to-brand-secondary w-[25%]" />
+                        <motion.div
+                          initial={{ scale: 1.08, filter: "blur(8px)" }}
+                          animate={{ scale: 1, filter: "blur(0px)" }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                          className="absolute inset-0 w-full h-full"
+                        >
+                          <Image
+                            src={phase.image}
+                            alt={phase.scanLabel}
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 600px"
+                            className="object-cover object-center transition-transform duration-700 group-hover:scale-104 transform-gpu"
+                            priority
+                          />
+                        </motion.div>
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                        <div className={`absolute bottom-5 left-5 bg-black/80 px-3 py-1.5 rounded border border-white/10 text-[9px] font-mono tracking-widest uppercase ${phase.scanColor}`}>
+                          {phase.scanLabel}
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">HRV Avg</span>
-                        <div className="text-2xl font-display font-black text-white">
-                          94<span className="text-xs font-sans text-brand-text-muted ml-0.5">ms</span>
+                      {/* Right Column: Narrative and HUD dashboard */}
+                      <div className="lg:col-span-6 space-y-6 text-left">
+                        <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded border ${phase.tagColor}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${phase.dotColor} animate-pulse`} />
+                          <span className="text-[9px] font-mono tracking-widest uppercase">
+                            {phase.tag}
+                          </span>
                         </div>
-                        {/* Strong high active pulse SVG */}
-                        <svg className="w-20 h-4 stroke-brand-secondary/60 fill-none" strokeWidth="1.5">
-                          <path d="M0 8 h4 l2 -12 l2 16 l2 -4 h4 l2 -12 l2 16 l2 -4 h15" />
-                        </svg>
-                      </div>
 
-                      <div className="space-y-2">
-                        <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">CNS State</span>
-                        <span className="inline-flex items-center px-2 py-0.5 bg-brand-secondary/10 border border-brand-secondary/20 rounded text-[9px] font-bold text-brand-secondary uppercase tracking-widest animate-pulse mt-1">
-                          Optimal
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                        <h3 className="font-display font-black text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-none">
+                          {phase.title} <br />
+                          <span className={phase.accentColor}>{phase.accentTitle}</span>
+                        </h3>
+                        
+                        <p className="font-sans text-sm md:text-base text-brand-text-muted font-light leading-relaxed">
+                          {phase.desc}
+                        </p>
 
-            </motion.div>
+                        {/* HUD metrics dashboard */}
+                        <div className="grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
+                          <div className="space-y-2">
+                            <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">Body Fat</span>
+                            <div className="text-2xl font-display font-black text-white flex items-baseline">
+                              {phase.bodyFat}<span className="text-xs font-sans text-brand-text-muted ml-0.5">%</span>
+                            </div>
+                            {/* Dynamic visual indicator */}
+                            <div className="h-1 bg-white/10 rounded-full overflow-hidden w-24">
+                              <motion.div
+                                initial={{ width: "0%" }}
+                                animate={{ width: `${phase.bodyFatPct}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className={`h-full ${phase.bodyFatColor}`}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">HRV Avg</span>
+                            <div className="text-2xl font-display font-black text-white">
+                              {phase.hrv}<span className="text-xs font-sans text-brand-text-muted ml-0.5">ms</span>
+                            </div>
+                            {/* Animated SVG Pulse graph */}
+                            <svg className="w-20 h-4 fill-none transform-gpu" strokeWidth="1.5">
+                              <motion.path
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 1.2, ease: "easeInOut" }}
+                                className={phase.hrvColor}
+                                d={phase.hrvPath}
+                              />
+                            </svg>
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-[9px] font-mono text-brand-text-muted uppercase tracking-wider block">CNS State</span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest animate-pulse mt-1 ${phase.cnsBadge}`}>
+                              {phase.cnsState}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+
           </div>
         </section>
 
