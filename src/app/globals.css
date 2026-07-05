@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #080808;
-  --color-brand-card: #111112;
-  --color-brand-card-hover: #161618;
-  --color-brand-accent: #CEFF00;
-  --color-brand-accent-hover: #bde600;
-  --color-brand-accent-muted: rgba(206, 255, 0, 0.08);
-  --color-brand-accent-glow: rgba(206, 255, 0, 0.25);
-  --color-brand-border: rgba(255, 255, 255, 0.08);
-  --color-brand-text-muted: #94a3b8;
+  --color-brand-bg: #050505;
+  --color-brand-card: #0b0b0c;
+  --color-brand-card-hover: #121213;
+  --color-brand-accent: #FF5E00;
+  --color-brand-accent-hover: #E04E00;
+  --color-brand-accent-muted: rgba(255, 94, 0, 0.08);
+  --color-brand-accent-glow: rgba(255, 94, 0, 0.25);
+  --color-brand-secondary: #FF003C;
+  --color-brand-secondary-muted: rgba(255, 0, 60, 0.08);
+  --color-brand-border: rgba(255, 255, 255, 0.06);
+  --color-brand-text-muted: #8e8e93;
 
   --font-sans: var(--font-inter), sans-serif;
   --font-display: var(--font-outfit), sans-serif;
@@ -30,10 +32,10 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #080808;
+  background: #050505;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222;
+  background: #1c1c1e;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -45,22 +47,22 @@ body {
   position: relative;
   background: var(--color-brand-card);
   border: 1px solid var(--color-brand-border);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @utility glow-card-hover {
   &:hover {
-    border-color: rgba(206, 255, 0, 0.35);
-    box-shadow: 0 0 30px rgba(206, 255, 0, 0.08);
+    border-color: rgba(255, 94, 0, 0.3);
+    box-shadow: 0 0 35px rgba(255, 94, 0, 0.06);
     background: var(--color-brand-card-hover);
   }
 }
 
 /* Text Stroke / Outline for display headings */
 @utility text-outline {
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.15);
   color: transparent;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 @utility text-outline-hover {
@@ -71,15 +73,15 @@ body {
 
 /* Glassmorphism */
 @utility glass-panel {
-  background: rgba(10, 10, 10, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(8, 8, 8, 0.75);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 @utility glass-panel-accent {
-  background: rgba(206, 255, 0, 0.02);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(206, 255, 0, 0.15);
+  background: rgba(255, 94, 0, 0.01);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 94, 0, 0.12);
 }

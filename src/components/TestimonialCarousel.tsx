@@ -72,7 +72,7 @@ export default function TestimonialCarousel() {
   return (
     <div className="relative w-full max-w-4xl mx-auto px-4">
       {/* Background Quote Mark Decor */}
-      <div className="absolute -top-10 -left-6 md:-left-12 opacity-5 text-[#CEFF00] pointer-events-none select-none">
+      <div className="absolute -top-10 -left-6 md:-left-12 opacity-5 text-brand-accent pointer-events-none select-none">
         <Quote className="w-32 h-32 fill-current" />
       </div>
 
