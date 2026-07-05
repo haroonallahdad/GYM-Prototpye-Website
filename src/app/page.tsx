@@ -77,23 +77,54 @@ export default function Home() {
   const vortexOpacity = useTransform(smoothIntroProgress, [0.72, 0.82], [1, 0]);
   const heroRevealOpacity = useTransform(smoothIntroProgress, [0.72, 0.82], [0, 1]);
 
-  // Phase controller for interactive biometric evolution deck (fixes scroll-linked wobbly lag)
+  // Phase controller for interactive biometric evolution deck
   const [currentPhase, setCurrentPhase] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [phaseTime, setPhaseTime] = useState(0);
 
-  // Auto-play phase changes
+  // Auto-play phase changes and continuous timeline progress
   useEffect(() => {
     if (!isAutoPlaying) return;
+    
+    const intervalTime = 50; // Update every 50ms for sub-tick smooth tracking
     const timer = setInterval(() => {
-      setCurrentPhase((prev) => (prev + 1) % 3);
-    }, 7000);
+      setPhaseTime((prev) => {
+        const nextTime = prev + intervalTime;
+        if (nextTime >= 7000) {
+          setCurrentPhase((p) => (p + 1) % 3);
+          return 0; // Reset timer for next phase
+        }
+        return nextTime;
+      });
+    }, intervalTime);
+
     return () => clearInterval(timer);
   }, [isAutoPlaying]);
 
   const selectPhase = (idx: number) => {
     setCurrentPhase(idx);
+    setPhaseTime(0);
     setIsAutoPlaying(false); // Stop autoplay once user interacts manually
   };
+
+  const getTimelineProgress = () => {
+    if (!isAutoPlaying) {
+      if (currentPhase === 0) return 0;
+      if (currentPhase === 1) return 50;
+      return 100;
+    }
+    
+    const ratio = Math.min(phaseTime / 7000, 1);
+    if (currentPhase === 0) {
+      return ratio * 50; // 0% to 50%
+    } else if (currentPhase === 1) {
+      return 50 + ratio * 50; // 50% to 100%
+    } else {
+      return 100; // Stays at 100% during Apex phase
+    }
+  };
+
+  const timelineProgress = getTimelineProgress();
 
   // Generate physics shards on client mount
   useEffect(() => {
@@ -877,37 +908,57 @@ export default function Home() {
               </p>
             </div>
 
-            {/* HIGH-TECH TAB CONTROLLER */}
-            <div className="flex justify-center items-center space-x-4 md:space-x-8 mb-16 border-b border-white/5 pb-6 w-full max-w-2xl relative select-none">
-              {["01 // BASELINE", "02 // MOMENTUM", "03 // APEX"].map((phaseName, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => selectPhase(idx)}
-                  className={`relative pb-3 text-[10px] md:text-xs font-mono tracking-widest uppercase transition-colors duration-300 ${
-                    currentPhase === idx ? "text-brand-accent font-black" : "text-white/40 hover:text-white/80"
-                  }`}
-                >
-                  {phaseName}
-                  
-                  {/* Glowing active line */}
-                  {currentPhase === idx && (
-                    <motion.div
-                      layoutId="activePhaseLine"
-                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-accent shadow-[0_0_8px_rgba(255,94,0,0.6)]"
-                    />
-                  )}
+            {/* HIGH-TECH TIMELINE TRACK CONTROLLER */}
+            <div className="relative w-full max-w-xl md:max-w-2xl mb-20 px-4 md:px-10 select-none">
+              {/* Background Track Line */}
+              <div className="absolute top-[14px] left-12 right-12 h-[2px] bg-white/5 z-0" />
+              
+              {/* Active Progress Line */}
+              <div className="absolute top-[14px] left-12 right-12 h-[2px] overflow-hidden z-10 pointer-events-none">
+                <motion.div
+                  style={{ width: `${timelineProgress}%` }}
+                  className="h-full bg-gradient-to-r from-brand-secondary to-brand-accent shadow-[0_0_8px_rgba(255,94,0,0.6)] transition-all duration-75 ease-linear"
+                />
+              </div>
 
-                  {/* Autoplay loading progress indicator */}
-                  {currentPhase === idx && isAutoPlaying && (
-                    <motion.div
-                      initial={{ width: "0%" }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 7, ease: "linear" }}
-                      className="absolute -bottom-[2px] left-0 h-[2px] bg-white z-20"
-                    />
-                  )}
-                </button>
-              ))}
+              {/* Tab Buttons Container */}
+              <div className="relative z-20 flex justify-between items-center w-full">
+                {["01 // BASELINE", "02 // MOMENTUM", "03 // APEX"].map((phaseName, idx) => {
+                  const nodeProgress = idx === 0 ? 0 : idx === 1 ? 50 : 100;
+                  const isReached = timelineProgress >= nodeProgress;
+                  const isActive = currentPhase === idx;
+                  
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => selectPhase(idx)}
+                      className="flex flex-col items-center group cursor-pointer focus:outline-none"
+                      style={{ width: "120px" }}
+                    >
+                      {/* Timeline Node Dot */}
+                      <div className="relative h-[30px] flex items-center justify-center">
+                        <motion.div
+                          animate={{
+                            scale: isActive ? 1.25 : 1,
+                            backgroundColor: isReached ? "#FF5E00" : "#121214",
+                            borderColor: isReached ? "#FF5E00" : "rgba(255,255,255,0.1)",
+                            boxShadow: isActive ? "0 0 15px #FF5E00" : "none"
+                          }}
+                          transition={{ duration: 0.3 }}
+                          className="w-3.5 h-3.5 rounded-full border-2 z-30"
+                        />
+                      </div>
+                      
+                      {/* Phase Text */}
+                      <span className={`text-[10px] md:text-xs font-mono tracking-widest uppercase transition-colors duration-300 ${
+                        isActive ? "text-brand-accent font-black" : "text-white/40 hover:text-white/80"
+                      }`}>
+                        {phaseName}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* DECK PANEL CONTAINER */}
