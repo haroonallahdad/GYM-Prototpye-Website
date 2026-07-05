@@ -89,7 +89,7 @@ export default function Home() {
     damping: 22,
     restDelta: 0.0005,
   });
-  const horizontalX = useTransform(smoothHorizontalProgress, [0, 1], ["0%", "-66.66%"]);
+  const horizontalX = useTransform(smoothHorizontalProgress, [0, 1], ["0vw", "-200vw"]);
 
   // Generate physics shards on client mount
   useEffect(() => {
@@ -786,13 +786,16 @@ export default function Home() {
 
         {/* 📈 HORIZONTAL SCROLL STORYTELLER (THE EVOLUTION CENTERPIECE) */}
         <section ref={scrollContainerRef} className="relative h-[300vh] bg-black">
-          {/* Sticky view wrapper */}
-          <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-            {/* Horizontal translation container with spring inertia */}
-            <motion.div style={{ x: horizontalX }} className="flex w-[300vw] h-screen">
+          {/* Sticky view wrapper with perspective and hardware compositing */}
+          <div className="sticky top-0 h-screen flex items-center overflow-hidden [perspective:1000px] [backface-visibility:hidden]">
+            {/* Horizontal translation container with spring inertia and explicit GPU layer promotion */}
+            <motion.div
+              style={{ x: horizontalX, z: 0 }}
+              className="flex w-[300vw] h-screen will-change-transform transform-gpu backface-hidden"
+            >
               
               {/* STAGE 1: THE COLD START */}
-              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#120400] px-6 md:px-16 overflow-hidden">
+              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#120400] px-6 md:px-16 overflow-hidden transform-gpu backface-hidden">
                 {/* Background Giant Track number */}
                 <div className="absolute -bottom-16 -left-16 font-display font-black text-[35vw] text-outline opacity-[0.025] select-none">
                   01
@@ -882,7 +885,7 @@ export default function Home() {
               </div>
 
               {/* STAGE 2: THE MOMENTUM */}
-              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#1c0c00] px-6 md:px-16 overflow-hidden">
+              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#1c0c00] px-6 md:px-16 overflow-hidden transform-gpu backface-hidden">
                 <div className="absolute -bottom-16 -left-16 font-display font-black text-[35vw] text-outline opacity-[0.025] select-none">
                   02
                 </div>
@@ -970,7 +973,7 @@ export default function Home() {
               </div>
 
               {/* STAGE 3: THE APEX */}
-              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#260500] px-6 md:px-16 overflow-hidden">
+              <div className="w-screen h-screen flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative bg-gradient-to-br from-black via-[#040404] to-[#260500] px-6 md:px-16 overflow-hidden transform-gpu backface-hidden">
                 <div className="absolute -bottom-16 -left-16 font-display font-black text-[35vw] text-outline opacity-[0.025] select-none">
                   03
                 </div>
