@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #080808;
+  --color-brand-card: #111112;
+  --color-brand-card-hover: #161618;
+  --color-brand-accent: #CEFF00;
+  --color-brand-accent-hover: #bde600;
+  --color-brand-accent-muted: rgba(206, 255, 0, 0.08);
+  --color-brand-accent-glow: rgba(206, 255, 0, 0.25);
+  --color-brand-border: rgba(255, 255, 255, 0.08);
+  --color-brand-text-muted: #94a3b8;
+
+  --font-sans: var(--font-inter), sans-serif;
+  --font-display: var(--font-outfit), sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-brand-bg);
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-accent);
+}
+
+/* Glowing Border Utility */
+@utility glow-card {
+  position: relative;
+  background: var(--color-brand-card);
+  border: 1px solid var(--color-brand-border);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility glow-card-hover {
+  &:hover {
+    border-color: rgba(206, 255, 0, 0.35);
+    box-shadow: 0 0 30px rgba(206, 255, 0, 0.08);
+    background: var(--color-brand-card-hover);
+  }
+}
+
+/* Text Stroke / Outline for display headings */
+@utility text-outline {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+  color: transparent;
+  transition: all 0.3s ease;
+}
+
+@utility text-outline-hover {
+  &:hover {
+    -webkit-text-stroke: 1px var(--color-brand-accent);
+  }
+}
+
+/* Glassmorphism */
+@utility glass-panel {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@utility glass-panel-accent {
+  background: rgba(206, 255, 0, 0.02);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(206, 255, 0, 0.15);
+}
