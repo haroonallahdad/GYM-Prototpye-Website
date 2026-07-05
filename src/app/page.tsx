@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import {
   ShieldCheck,
   Zap,
@@ -56,14 +56,59 @@ export default function Home() {
   const [isNewsSubmitted, setIsNewsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Ref for the horizontal scroll section
+  // Intro Glass Sequence Refs
+  const introContainerRef = useRef<HTMLDivElement>(null);
+  const [activeStep, setActiveStep] = useState(1);
+  const [shards, setShards] = useState<{ targetX: number; targetY: number; rotate: number; width: number; height: number; left: number; top: number }[]>([]);
+
+  // Horizontal Scroll Transformation Section Refs
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: horizontalScrollProgress } = useScroll({
     target: scrollContainerRef,
   });
+  const horizontalX = useTransform(horizontalScrollProgress, [0, 1], ["0%", "-66.66%"]);
 
-  // Translate vertical scroll (0 to 1) into horizontal displacement (0% to -66.66%)
-  const horizontalX = useTransform(scrollYProgress, [0, 1], ["0%", "-66.66%"]);
+  // Track intro sequence scroll progress
+  const { scrollYProgress: introScrollProgress } = useScroll({
+    target: introContainerRef,
+  });
+
+  // Crossfade backgrounds in intro sequence
+  const vortexOpacity = useTransform(introScrollProgress, [0.72, 0.82], [1, 0]);
+  const heroRevealOpacity = useTransform(introScrollProgress, [0.72, 0.82], [0, 1]);
+
+  // Generate physics shards on client mount
+  useEffect(() => {
+    const generated = Array.from({ length: 45 }).map(() => {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 180 + Math.random() * 450;
+      return {
+        targetX: Math.cos(angle) * distance,
+        targetY: Math.sin(angle) * distance,
+        rotate: Math.random() * 720 - 360,
+        width: 15 + Math.random() * 30,
+        height: 15 + Math.random() * 30,
+        left: 45 + Math.random() * 10,
+        top: 45 + Math.random() * 10,
+      };
+    });
+    setShards(generated);
+  }, []);
+
+  // Update step status based on scroll position
+  useMotionValueEvent(introScrollProgress, "change", (latest) => {
+    if (latest < 0.2) {
+      if (activeStep !== 1) setActiveStep(1);
+    } else if (latest < 0.4) {
+      if (activeStep !== 2) setActiveStep(2);
+    } else if (latest < 0.6) {
+      if (activeStep !== 3) setActiveStep(3);
+    } else if (latest < 0.8) {
+      if (activeStep !== 4) setActiveStep(4);
+    } else {
+      if (activeStep !== 5) setActiveStep(5);
+    }
+  });
 
   const handleCtaSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +187,7 @@ export default function Home() {
     {
       title: "Recovery Spa",
       description:
-        "Accelerate cellular repair and fight central nervous system fatigue. Features clinical-grade cold plunges at 42°F, high-output red-light therapy chambers, and premium custom cedar saunas.",
+        "Accelerate cellular repair and fight central nervous system fatigue. Features clinical-grade cold plunges at 42°F, high-output red-light therapy chambers, and premium cedar saunas.",
       image: "/images/facility_recovery.png",
       tag: "Contrast & Longevity",
     },
@@ -193,6 +238,13 @@ export default function Home() {
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const } },
+  };
+
+  // Quote Animation Variants
+  const quoteVariants = {
+    hidden: { opacity: 0, scale: 0.85, y: 20 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } },
+    exit: { opacity: 0, scale: 1.15, y: -20, transition: { duration: 0.5, ease: "easeIn" as const } },
   };
 
   return (
@@ -259,161 +311,325 @@ export default function Home() {
 
       <Navbar />
 
-      <main className="flex-grow pt-20">
-        {/* 🎬 HERO SECTION */}
-        <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden px-6">
-          {/* Background Video/Image Layer */}
-          <div className="absolute inset-0 z-0">
+      {/* 🎬 5-STEP GLASS-SHATTERING INTRO SEQUENCE */}
+      <section ref={introContainerRef} className="relative h-[500vh] bg-black z-30">
+        <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
+          
+          {/* BACKGROUND VORTEX (METAPHOR) */}
+          <motion.div style={{ opacity: vortexOpacity }} className="absolute inset-0 z-0">
+            <Image
+              src="/images/space_vortex.png"
+              alt="Deep Space Metaphoric Vortex"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center brightness-[0.3]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+          </motion.div>
+
+          {/* BACKGROUND ATHLETE REVEAL (HERO) */}
+          <motion.div style={{ opacity: heroRevealOpacity }} className="absolute inset-0 z-0">
             <Image
               src="/images/hero_bg.png"
               alt="TITAN Premium Gym Interior"
               fill
-              priority
               sizes="100vw"
-              className="object-cover object-center brightness-[0.25] scale-105"
+              className="object-cover object-center brightness-[0.22] scale-105"
             />
-            {/* Dark Overlays for Cinematic Depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-bg via-transparent to-brand-bg/70" />
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-bg/90 via-brand-bg/30 to-transparent" />
-          </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
+          </motion.div>
 
-          {/* Giant Scrolling Outline Title behind Content */}
-          <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
-            <motion.h1
-              initial={{ x: "-10%" }}
-              animate={{ x: "10%" }}
-              transition={{ repeat: Infinity, repeatType: "mirror", duration: 25, ease: "linear" }}
-              className="font-display font-black text-[22vw] uppercase text-outline opacity-[0.03] tracking-wider leading-none"
-            >
-              PERFORMANCE
-            </motion.h1>
-          </div>
-
-          <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-16">
-            {/* Copy Block */}
-            <div className="lg:col-span-8 flex flex-col items-start text-left space-y-8">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="inline-flex items-center space-x-2 bg-brand-accent-muted px-4 py-1.5 rounded-full border border-brand-accent/20"
-              >
-                <Flame className="w-4 h-4 text-brand-accent animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-accent">
-                  Tech Harbor Demonstration Showcase
-                </span>
-              </motion.div>
-
-              <div className="space-y-4">
-                <motion.h1
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                  className="font-display font-black text-5xl sm:text-7xl lg:text-[6.5rem] tracking-tight leading-[0.85] text-white uppercase"
-                >
-                  THE APEX OF <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-secondary">HUMAN FORCE.</span>
-                </motion.h1>
+          {/* LEFT STEPPER PROGRESS SIDEBAR */}
+          <div className="absolute left-8 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-start space-y-8 select-none">
+            <div className="relative flex flex-col items-center">
+              <div className="w-[1px] h-48 bg-white/10 absolute top-0 bottom-0 left-1.5 z-0" />
+              
+              {/* Stepper Dots */}
+              <div className="flex flex-col space-y-10 relative z-10">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 ${activeStep === 1 ? "bg-brand-accent border-brand-accent scale-110" : "bg-black border-white/20"}`} />
+                  <span className={`text-[10px] font-bold tracking-widest uppercase transition-colors ${activeStep === 1 ? "text-brand-accent" : "text-white/30"}`}>STEP 1</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 ${activeStep === 2 ? "bg-brand-accent border-brand-accent scale-110" : "bg-black border-white/20"}`} />
+                  <span className={`text-[10px] font-bold tracking-widest uppercase transition-colors ${activeStep === 2 ? "text-brand-accent" : "text-white/30"}`}>STEP 2</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 ${activeStep === 3 ? "bg-brand-accent border-brand-accent scale-110" : "bg-black border-white/20"}`} />
+                  <span className={`text-[10px] font-bold tracking-widest uppercase transition-colors ${activeStep === 3 ? "text-brand-accent" : "text-white/30"}`}>STEP 3</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 ${activeStep === 4 ? "bg-brand-accent border-brand-accent scale-110" : "bg-black border-white/20"}`} />
+                  <span className={`text-[10px] font-bold tracking-widest uppercase transition-colors ${activeStep === 4 ? "text-brand-accent" : "text-white/30"}`}>STEP 4</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 ${activeStep === 5 ? "bg-brand-secondary border-brand-secondary scale-110 animate-pulse" : "bg-black border-white/20"}`} />
+                  <span className={`text-[10px] font-bold tracking-widest uppercase transition-colors ${activeStep === 5 ? "text-brand-secondary font-black" : "text-white/30"}`}>UNSTOPPABLE</span>
+                </div>
               </div>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, delay: 0.15 }}
-                className="max-w-2xl font-sans text-base md:text-lg text-brand-text-muted font-light leading-relaxed"
-              >
-                A restricted, low-density athletic sanctuary built for elite operators. TITAN fuses sports-science metrics with contrast recovery chambers to forge defined physical output.
-              </motion.p>
-
-              {/* CTAs */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, delay: 0.3 }}
-                className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto pt-4"
-              >
-                <a
-                  href="#cta"
-                  className="px-8 py-4 bg-gradient-to-r from-brand-accent to-brand-accent-hover hover:scale-[1.03] text-black text-center font-bold text-xs uppercase tracking-widest rounded-full shadow-[0_0_35px_rgba(255,94,0,0.25)] transition-all duration-300"
-                >
-                  Apply For Admission
-                </a>
-                <a
-                  href="#why-choose"
-                  className="px-8 py-4 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white text-center font-bold text-xs uppercase tracking-widest rounded-full border border-white/10 transition-all duration-300"
-                >
-                  Explore Technology
-                </a>
-              </motion.div>
             </div>
-
-            {/* Dashboard HUD widget */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-              className="lg:col-span-4 glass-panel rounded-3xl p-8 border border-white/5 flex flex-col justify-between space-y-8 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                <h3 className="font-display text-xs font-black uppercase tracking-widest text-white/50">
-                  HUD SYSTEM // ACTV
-                </h3>
-                <span className="w-2 h-2 rounded-full bg-brand-secondary animate-pulse" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-6 gap-y-8">
-                <div>
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-brand-text-muted">
-                    Total Load
-                  </p>
-                  <p className="text-3xl font-display font-black text-white mt-1">
-                    <StatCounter value={1200} suffix="+" />
-                  </p>
-                </div>
-                <div>
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-brand-text-muted">
-                    Force Output
-                  </p>
-                  <p className="text-3xl font-display font-black text-white mt-1">
-                    <StatCounter value={99} suffix="%" />
-                  </p>
-                </div>
-                <div>
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-brand-text-muted">
-                    Biometric Hubs
-                  </p>
-                  <p className="text-3xl font-display font-black text-white mt-1">
-                    <StatCounter value={4} />
-                  </p>
-                </div>
-                <div>
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-brand-text-muted">
-                    CNS Efficiency
-                  </p>
-                  <p className="text-3xl font-display font-black text-brand-accent mt-1">
-                    <StatCounter value={94} suffix="ms" />
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-brand-accent-muted rounded-2xl p-4 border border-brand-accent/15 flex items-center space-x-3.5">
-                <Cpu className="w-6 h-6 text-brand-accent flex-shrink-0" />
-                <div>
-                  <p className="text-[10px] font-bold text-white uppercase tracking-wider">
-                    Restricted Capacity Cap
-                  </p>
-                  <p className="text-[10px] text-brand-text-muted mt-0.5 leading-snug">
-                    B2B Pitch: This page demonstrates high-framerate interaction models.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
           </div>
-        </section>
 
-        {/* 🏢 THE TECHNOLOGY (BENTO GRID) */}
+          {/* RIGHT "SCROLL TO BREAK" HINT */}
+          {activeStep < 5 && (
+            <div className="absolute right-12 bottom-12 z-30 hidden md:flex flex-col items-end space-y-2 text-right select-none animate-pulse">
+              <span className="text-[9px] font-black tracking-widest uppercase text-brand-text-muted">
+                Scroll To Break Barrier
+              </span>
+              <ArrowRight className="w-5 h-5 text-brand-accent rotate-90" />
+            </div>
+          )}
+
+          {/* DYNAMIC SVG GLASS CRACKS OVERLAYS */}
+          <div className="absolute inset-0 z-20 pointer-events-none w-full h-full">
+            {activeStep === 1 && (
+              <svg className="w-full h-full stroke-white/40 fill-none" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="50%" cy="48%" r="6" className="stroke-white/60" />
+                <line x1="50%" y1="48%" x2="52%" y2="45%" />
+                <line x1="50%" y1="48%" x2="48%" y2="52%" />
+                <line x1="50%" y1="48%" x2="49%" y2="44%" />
+                <line x1="50%" y1="48%" x2="53%" y2="51%" />
+              </svg>
+            )}
+
+            {activeStep === 2 && (
+              <svg className="w-full h-full stroke-white/35 fill-none" strokeWidth="2" strokeLinecap="round">
+                {/* Step 1 base */}
+                <circle cx="50%" cy="48%" r="6" className="stroke-white/50" />
+                <line x1="50%" y1="48%" x2="52%" y2="45%" />
+                <line x1="50%" y1="48%" x2="48%" y2="52%" />
+                {/* Extensions */}
+                <line x1="52%" y1="45%" x2="57%" y2="38%" />
+                <line x1="48%" y1="52%" x2="42%" y2="59%" />
+                <line x1="53%" y1="51%" x2="64%" y2="56%" />
+                <line x1="57%" y1="38%" x2="55%" y2="35%" />
+                <line x1="42%" y1="59%" x2="44%" y2="64%" />
+              </svg>
+            )}
+
+            {activeStep === 3 && (
+              <svg className="w-full h-full stroke-white/30 fill-none animate-pulse" strokeWidth="1.5" strokeLinecap="round">
+                {/* Web fractals */}
+                <circle cx="50%" cy="48%" r="6" className="stroke-white/50" />
+                <path d="M 52% 45% Q 49% 43% 48% 52%" />
+                <path d="M 57% 38% Q 51% 34% 45% 32%" />
+                <path d="M 42% 59% Q 53% 60% 64% 56%" />
+                {/* Structural cracks to the edge */}
+                <line x1="50%" y1="48%" x2="5%" y2="15%" />
+                <line x1="50%" y1="48%" x2="95%" y2="12%" />
+                <line x1="50%" y1="48%" x2="88%" y2="90%" />
+                <line x1="50%" y1="48%" x2="10%" y2="82%" />
+                <line x1="5%" y1="15%" x2="0%" y2="18%" />
+                <line x1="95%" y1="12%" x2="100%" y2="10%" />
+              </svg>
+            )}
+
+            {/* Step 4 Physics Shatter Shards */}
+            {activeStep === 4 && shards.map((shard, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                animate={{
+                  x: shard.targetX,
+                  y: shard.targetY,
+                  opacity: 0,
+                  scale: 0.15,
+                  rotate: shard.rotate,
+                }}
+                transition={{ duration: 1.1, ease: [0.1, 0.8, 0.2, 1] }}
+                className="absolute bg-white/10 border border-white/30"
+                style={{
+                  clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+                  width: shard.width,
+                  height: shard.height,
+                  left: `${shard.left}%`,
+                  top: `${shard.top}%`,
+                  marginLeft: -15,
+                  marginTop: -15,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* MOTIVATIONAL QUOTES & HERO CONTENT LAYER */}
+          <div className="relative z-10 max-w-5xl mx-auto w-full px-6 flex flex-col items-center justify-center text-center">
+            
+            <AnimatePresence mode="wait">
+              {activeStep === 1 && (
+                <motion.div
+                  key="step1"
+                  variants={quoteVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="space-y-4"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-text-muted">
+                    STEP 1 // THE MINDSET
+                  </span>
+                  <h2 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl leading-none text-white uppercase tracking-tight">
+                    DISCIPLINE TODAY
+                  </h2>
+                  <p className="text-sm font-semibold uppercase tracking-widest text-white/50">
+                    SUCCESS tomorrow
+                  </p>
+                </motion.div>
+              )}
+
+              {activeStep === 2 && (
+                <motion.div
+                  key="step2"
+                  variants={quoteVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="space-y-4"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-text-muted">
+                    STEP 2 // THE DISCOMFORT
+                  </span>
+                  <h2 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl leading-none text-white uppercase tracking-tight">
+                    PAIN IS TEMPORARY
+                  </h2>
+                  <p className="text-sm font-semibold uppercase tracking-widest text-white/50">
+                    PRIDE is forever
+                  </p>
+                </motion.div>
+              )}
+
+              {activeStep === 3 && (
+                <motion.div
+                  key="step3"
+                  variants={quoteVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="space-y-4"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-text-muted">
+                    STEP 3 // THE EXCUSES
+                  </span>
+                  <h2 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl leading-none text-white uppercase tracking-tight">
+                    STRONGER THAN YOUR
+                  </h2>
+                  <p className="text-xl sm:text-2xl font-black uppercase tracking-widest text-brand-secondary">
+                    EXCUSES
+                  </p>
+                </motion.div>
+              )}
+
+              {activeStep === 4 && (
+                <motion.div
+                  key="step4"
+                  variants={quoteVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="space-y-4"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-text-muted">
+                    STEP 4 // THE BARRIER
+                  </span>
+                  <h2 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl leading-none text-white uppercase tracking-tight">
+                    TRANSFORM YOUR BODY
+                  </h2>
+                  <p className="text-xl sm:text-2xl font-black uppercase tracking-widest text-brand-secondary">
+                    TRANSFORM YOUR LIFE
+                  </p>
+                </motion.div>
+              )}
+
+              {activeStep === 5 && (
+                <motion.div
+                  key="step5"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full flex flex-col items-center space-y-8"
+                >
+                  {/* Tag */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="inline-flex items-center space-x-2 bg-brand-accent-muted px-4 py-1.5 rounded-full border border-brand-accent/20"
+                  >
+                    <Flame className="w-4 h-4 text-brand-accent animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand-accent">
+                      Tech Harbor Demonstration Showcase
+                    </span>
+                  </motion.div>
+
+                  {/* Title & custom quotes */}
+                  <div className="space-y-4">
+                    <h1 className="font-display font-black text-5xl sm:text-7xl lg:text-[6.5rem] tracking-tight leading-[0.85] text-white uppercase">
+                      BECOME <br />
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-brand-secondary">UNSTOPPABLE.</span>
+                    </h1>
+                    <p className="max-w-2xl font-sans text-base md:text-lg text-brand-text-muted font-light leading-relaxed mt-4">
+                      Your only limit is you. TITAN fuses sports-science metrics with contrast recovery chambers to forge defined physical output.
+                    </p>
+                    {/* Creative addition quote */}
+                    <p className="text-xs md:text-sm font-semibold uppercase tracking-widest text-brand-accent/80 italic pt-2">
+                      "The strongest muscle you'll ever build is your mind."
+                    </p>
+                  </div>
+
+                  {/* CTAs */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto pt-4">
+                    <a
+                      href="#cta"
+                      className="px-8 py-4 bg-gradient-to-r from-brand-accent to-brand-accent-hover hover:scale-[1.03] text-black text-center font-bold text-xs uppercase tracking-widest rounded-full shadow-[0_0_35px_rgba(255,94,0,0.25)] transition-all duration-300"
+                    >
+                      Start Your Journey
+                    </a>
+                    <a
+                      href="#why-choose"
+                      className="px-8 py-4 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white text-center font-bold text-xs uppercase tracking-widest rounded-full border border-white/10 transition-all duration-300"
+                    >
+                      Explore Technology
+                    </a>
+                  </div>
+
+                  {/* Stats overlay inside Step 5 (Matches Step 5 Footer) */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 border-t border-white/10 pt-12 mt-12 w-full max-w-4xl text-center">
+                    <div>
+                      <p className="text-3xl font-display font-black text-white">
+                        <StatCounter value={15} suffix="K+" />
+                      </p>
+                      <span className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider mt-1 block">Members</span>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-display font-black text-white">
+                        <StatCounter value={50} suffix="+" />
+                      </p>
+                      <span className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider mt-1 block">Expert Trainers</span>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-display font-black text-white">
+                        <StatCounter value={20} suffix="+" />
+                      </p>
+                      <span className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider mt-1 block">Programs</span>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-display font-black text-brand-accent">
+                        <StatCounter value={98} suffix="%" />
+                      </p>
+                      <span className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider mt-1 block">Satisfaction Rate</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 🏢 THE TECHNOLOGY (BENTO GRID) */}
+      <main className="flex-grow pt-20">
         <section id="why-choose" className="py-28 md:py-36 max-w-7xl mx-auto px-6 relative">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-20 gap-8">
             <div className="space-y-4">
