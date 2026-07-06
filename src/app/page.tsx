@@ -81,6 +81,7 @@ export default function Home() {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [phaseTime, setPhaseTime] = useState(0);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
 
   // Auto-play phase changes and continuous timeline progress
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function Home() {
       setPhaseTime((prev) => {
         const nextTime = prev + intervalTime;
         if (nextTime >= 7000) {
+          setDirection(1); // Auto-play always moves forward
           setCurrentPhase((p) => (p + 1) % 3);
           return 0; // Reset timer for next phase
         }
@@ -102,6 +104,7 @@ export default function Home() {
   }, [isAutoPlaying]);
 
   const selectPhase = (idx: number) => {
+    setDirection(idx > currentPhase ? 1 : -1);
     setCurrentPhase(idx);
     setPhaseTime(0);
     setIsAutoPlaying(false); // Stop autoplay once user interacts manually
@@ -125,6 +128,22 @@ export default function Home() {
   };
 
   const timelineProgress = getTimelineProgress();
+
+  // Variants for horizontal sliding panel transitions
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? "5%" : "-5%",
+      opacity: 0
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? "-5%" : "5%",
+      opacity: 0
+    })
+  };
 
   // Generate physics shards on client mount
   useEffect(() => {
@@ -962,17 +981,22 @@ export default function Home() {
             </div>
 
             {/* DECK PANEL CONTAINER */}
-            <div className="w-full min-h-[580px] md:min-h-[420px] flex items-center justify-center relative">
-              <AnimatePresence mode="wait">
+            <div className="w-full min-h-[580px] md:min-h-[420px] flex items-center justify-center relative overflow-hidden">
+              <AnimatePresence initial={false} custom={direction} mode="wait">
                 {evolutionPhases.map((phase, idx) => {
                   if (currentPhase !== idx) return null;
                   return (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{
+                        x: { type: "spring", stiffness: 160, damping: 22 },
+                        opacity: { duration: 0.2 }
+                      }}
                       className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10"
                     >
                       {/* Left Column: Image with Corner Reticles and Laser Sweeper */}
