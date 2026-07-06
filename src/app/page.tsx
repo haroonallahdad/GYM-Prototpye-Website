@@ -106,8 +106,8 @@ export default function Home() {
   const selectPhase = (idx: number) => {
     setDirection(idx > currentPhase ? 1 : -1);
     setCurrentPhase(idx);
-    setPhaseTime(0);
-    setIsAutoPlaying(false); // Stop autoplay once user interacts manually
+    setPhaseTime(0); // Reset timer to start fresh from 0 for the selected phase
+    setIsAutoPlaying(true); // Keep auto-play active and running
   };
 
   const getTimelineProgress = () => {
